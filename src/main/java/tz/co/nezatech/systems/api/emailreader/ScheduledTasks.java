@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
+
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -16,12 +17,14 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.search.SearchTerm;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
 import tz.co.nezatech.systems.api.emailreader.data.Payment;
 import tz.co.nezatech.systems.api.emailreader.repository.PaymentRepository;
 import tz.co.nezatech.systems.api.emailreader.util.Transaction;
@@ -48,6 +51,7 @@ public class ScheduledTasks {
             Properties props = new Properties();
             props.load(ScheduledTasks.class.getClassLoader().getResourceAsStream("mail.properties"));
             final String sender = props.getProperty("service.mail.sender");
+            final String[]  subjExcludes = props.getProperty("service.mail.subject.exclude.list","").split(",");
             Session session = Session.getDefaultInstance(props);
             Store store = session.getStore("imaps");
             store.connect(props.getProperty("mail.imaps.username"), props.getProperty("mail.imaps.password"));
@@ -68,11 +72,16 @@ public class ScheduledTasks {
                 public boolean match(Message message) {
                     try {
                         String from = message.getFrom()[0].toString();
-                        String msg = message.getContent().toString();
-                        if (from.contains(sender) && msg.contains(msg)) {
+                        //String msg = message.getContent().toString();
+                        String subject = message.getSubject(); 
+                        for (int i = 0; i < subjExcludes.length; i++) {
+							if(subject.contains(subjExcludes[i])) return false; 
+						}
+                        
+                        if (from.contains(sender)) {
                             return true;
-                        }
-                    } catch (MessagingException | IOException ex) {
+                        } 
+                    } catch (Exception ex) {
                         log.error(ex.getMessage());
                     }
                     return false;
