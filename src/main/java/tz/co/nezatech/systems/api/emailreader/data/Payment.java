@@ -24,9 +24,10 @@ private String txnSource;
     private String distributor;
     private int regionId;
     private String payeeMsisdn;
+    private int accountId;
     
 
-    public Payment(String txnSource,String txnId,String payeeMsisdn, double amount, String msisdn, String recordedBy, Date transDate) {
+    public Payment(String txnSource,String txnId,String payeeMsisdn, double amount, String msisdn, String recordedBy, Date transDate, int accountId) {
         this.txnSource=txnSource;
         this.txnId = txnId;
         this.amount = amount;
@@ -37,12 +38,22 @@ private String txnSource;
         this.lastUpdate = new Date();
         this.status = 0;
         this.payeeMsisdn=payeeMsisdn;
+        this.accountId=accountId;
     }
 
     public Payment() {
     }
+    
 
-    public String getPayeeMsisdn() {
+    public int getAccountId() {
+		return accountId;
+	}
+
+	public void setAccountId(int accountId) {
+		this.accountId = accountId;
+	}
+
+	public String getPayeeMsisdn() {
         return payeeMsisdn;
     }
 

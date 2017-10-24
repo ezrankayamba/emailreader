@@ -173,7 +173,8 @@ public class ScheduledTasks {
 							}
 							txnId = t.getChannel().contains("P2P") ? t.getTrxnId() : t.getReceiptNo();
 							String recordedBy = props.getProperty("service.auth.username");
-							String payeeMsisdn = props.getProperty("service.account.msisdn");
+							//String payeeMsisdn = props.getProperty("service.account.msisdn");
+							String payeeMsisdn=acc.getMsisdn();
 							Date transDate = t.getTrxnDateObj();
 
 							log.info("Params;  TrxnID: {} Amount: {} MSISDN: {} TransDate: {}", txnId, amount, msisdn,
@@ -182,7 +183,7 @@ public class ScheduledTasks {
 
 								try {
 									repository.create(new Payment(t.getChannel(), txnId, payeeMsisdn, amount, msisdn,
-											recordedBy, transDate));
+											recordedBy, transDate, acc.getId()));
 									folder.copyMessages(mMsges, successFld);
 									folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
 									log.info("Payment successfully recorded for transaction ID: {}", soNo);

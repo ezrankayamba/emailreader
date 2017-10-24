@@ -44,7 +44,7 @@ public class PaymentRepository {
     }
 
     public Payment create(final Payment payment) {
-        final String sql = "insert into tbl_payment(txn_source,txn_id,payee_msisdn,amount,msisdn,record_date,recorded_by,txn_date,last_update,txn_status) values(?,?, ?,?,?,?,?,?,?,?)";
+        final String sql = "insert into tbl_payment(txn_source,txn_id,payee_msisdn,amount,msisdn,record_date,recorded_by,txn_date,last_update,txn_status, account_id) values(?,?, ?,?,?,?,?,?,?,?,?)";
 
         //KeyHolder holder = new GeneratedKeyHolder();
         jdbcTemplate.update(new PreparedStatementCreator() {
@@ -62,12 +62,10 @@ public class PaymentRepository {
                 ps.setTimestamp(8, new Timestamp(payment.getTransDate().getTime()));
                 ps.setTimestamp(9, new Timestamp((new Date()).getTime()));
                 ps.setInt(10, 0);
+                ps.setInt(11, payment.getAccountId());
                 return ps;
             }
-        });//holder could be the last param
-
-        //int newUserId = holder.getKey().intValue();
-        //payment.setId(newUserId);
+        });
         return payment;
     }
 }
@@ -76,7 +74,7 @@ class PaymentRowMapper implements RowMapper<Payment> {
 
     @Override
     public Payment mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Payment payment = new Payment(rs.getString("txn_source"),rs.getString("txn_id"), rs.getString("payee_msisdn"), rs.getDouble("amount"), rs.getString("msisdn"), rs.getString("recorded_by"), rs.getTimestamp("txn_date"));
+        Payment payment = new Payment(rs.getString("txn_source"),rs.getString("txn_id"), rs.getString("payee_msisdn"), rs.getDouble("amount"), rs.getString("msisdn"), rs.getString("recorded_by"), rs.getTimestamp("txn_date"), rs.getInt("account_id"));
         return payment;
     }
 }
