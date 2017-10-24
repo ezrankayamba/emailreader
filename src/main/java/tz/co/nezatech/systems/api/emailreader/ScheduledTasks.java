@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import tz.co.nezatech.systems.api.emailreader.data.Payment;
 import tz.co.nezatech.systems.api.emailreader.repository.PaymentRepository;
+import tz.co.nezatech.systems.api.emailreader.repository.PropertyRepository;
 import tz.co.nezatech.systems.api.emailreader.util.Transaction;
 
 /**
@@ -43,9 +44,12 @@ public class ScheduledTasks {
 	JdbcTemplate jdbcTemplate;
 	@Autowired
 	PaymentRepository repository;
+	@Autowired
+	PropertyRepository propertyRepos;
 
 	@Scheduled(fixedRate = 10000)
 	public void readMailNotifications() {
+
 		// log.info("Reading mail notification at {}", dateFormat.format(new Date()));
 		Session session = null;
 		Store store = null;
@@ -53,7 +57,9 @@ public class ScheduledTasks {
 		Folder successFld = null;
 		Folder failFld = null;
 		try {
-			Properties props = new Properties();
+			// Properties props = new Properties();
+			Properties props = propertyRepos.getProps();
+
 			props.load(ScheduledTasks.class.getClassLoader().getResourceAsStream("mail.properties"));
 			final String sender = props.getProperty("service.mail.sender");
 			final String[] subjExcludes = props.getProperty("service.mail.subject.exclude.list", "").split(",");
@@ -139,7 +145,7 @@ public class ScheduledTasks {
 				} catch (Exception e) {
 					log.error("Nest level 2a, error msg: {}", e.getMessage());
 				}
-				if (t != null) {
+				if (t != null && t.getChannel() != null) {
 					log.info("The transaction: {}", t);
 					dataComplete = true;
 					double amount = t.getAmount();
@@ -168,9 +174,16 @@ public class ScheduledTasks {
 							log.info("Payment successfully recorded for transaction ID: {}", soNo);
 						} catch (Exception e) {
 							log.error("Nest level 2b, error msg: {}", e.getMessage());
-							folder.copyMessages(mMsges, failFld);
-							folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
-							log.info("Payment failed to be recorded for transaction ID: {}", soNo);
+
+							if (e.getMessage() != null && e.getMessage().contains("Duplicate entry ")) {
+								folder.copyMessages(mMsges, successFld);
+								folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
+								log.info("Payment already recorded for transaction ID: {}", soNo);
+							} else {
+								folder.copyMessages(mMsges, failFld);
+								folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
+								log.info("Payment failed to be recorded for transaction ID: {}", soNo);
+							}
 						}
 					}
 				} else {
@@ -200,6 +213,8 @@ public class ScheduledTasks {
 
 	@Scheduled(fixedRate = 900000)
 	public void keepAlive() {// erevy 15 minutes
-		log.info("Reading mail notification keep alive at {}", dateFormat.format(new Date()));
+
+		log.info("[New] Reading mail notification keep alive at {}", dateFormat.format(new Date()));
 	}
+
 }
