@@ -116,11 +116,15 @@ public class ScheduledTasks {
 						}
 					});
 					for (Message message : messages) {
+						
 						Message mMsges[] = new Message[] { message };
 						String msg = message.getContent().toString();
+						log.info("The message(Raw): {}", msg);
 						msg = msg.split("\\[Tigo Tanzania\\]")[0];
-						String soNo = message.getSubject().split(" ")[2];
 						log.info("The message: {}", msg);
+						//String soNo = message.getSubject().split(" ")[2];
+						String subject = message.getSubject();
+						
 
 						boolean dataComplete = false;
 						Transaction t = null;
@@ -186,25 +190,25 @@ public class ScheduledTasks {
 											recordedBy, transDate, acc.getId()));
 									folder.copyMessages(mMsges, successFld);
 									folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
-									log.info("Payment successfully recorded for transaction ID: {}", soNo);
+									log.info("Payment successfully recorded for transaction ID: {}", subject);
 								} catch (Exception e) {
 									log.error("Nest level 2b, error msg: {}", e.getMessage());
 
 									if (e.getMessage() != null && e.getMessage().contains("Duplicate entry ")) {
 										folder.copyMessages(mMsges, successFld);
 										folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
-										log.info("Payment already recorded for transaction ID: {}", soNo);
+										log.info("Payment already recorded for transaction ID: {}", subject);
 									} else {
 										folder.copyMessages(mMsges, failFld);
 										folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
-										log.info("Payment failed to be recorded for transaction ID: {}", soNo);
+										log.info("Payment failed to be recorded for transaction ID: {}", subject);
 									}
 								}
 							}
 						} else {
 							folder.copyMessages(mMsges, failFld);
 							folder.setFlags(mMsges, new Flags(Flags.Flag.DELETED), true);
-							log.info("Payment failed to be recorded for transaction ID: {}", soNo);
+							log.info("Payment failed to be recorded for transaction ID: {}", subject);
 						}
 					}
 
